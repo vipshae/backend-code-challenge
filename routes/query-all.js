@@ -31,12 +31,20 @@ router.get('/', async (req, res) => {
     .where(queryTypeCondition)
     .where(queryFavoriteCondition);
 
-    
+    const pokemonDocsCount = await PokemonModel.countDocuments()
+    .where(queryNameCondition)
+    .where(queryTypeCondition)
+    .where(queryFavoriteCondition);;
+
     if(!queryResp) {
       res.status(404);
       res.json({message: `Pokemon data does not exist in DB`});
     } else {
-      res.json(queryResp);
+      res.json({
+        data: queryResp,
+        totalPages: Math.ceil(pokemonDocsCount / limit),
+        currentPage: page ? page : 1
+      });
     }
 
   } catch(err) {

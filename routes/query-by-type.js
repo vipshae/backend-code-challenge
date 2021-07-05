@@ -7,10 +7,6 @@ router.get('/:type', async (req, res) => {
     console.log(`Getting Pokemons for the requested type: ${req.params.type}`);
     const queryResp = await PokemonTypeModel.find({pokemontype: req.params.type })
       .select('pokemonnames -_id');
-
-    for(el of queryResp[0]['pokemonnames']) {
-      console.log(el);
-    }
     
     if(!queryResp) {
       res.status(404);

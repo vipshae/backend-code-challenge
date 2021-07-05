@@ -4,9 +4,8 @@
   "description": "CRUD pokemon data from db",
   "main": "index.js",
   "scripts": {
-    "load-db": "nodemon load-db.js",
     "start": "nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --recursive --exit --timeout 10000"
   },
   "repository": {
     "type": "git",
@@ -24,6 +23,10 @@
     "mongoose": "^5.13.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.9"
+    "chai": "^4.3.4",
+    "mocha": "^9.0.2",
+    "nodemon": "^2.0.9",
+    "sinon": "^11.1.1",
+    "supertest": "^6.1.3"
   }
 }

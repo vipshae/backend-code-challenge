@@ -1,18 +1,19 @@
 const mongoose = require('mongoose');
 
 // DB metadata
-const pokemonDbName = 'pokemon_db';
 const pokemonDbCollectionName = 'pokemons';
 const pokemonTypeDbCollectionName = 'pokemontypes';
 const dbUserName = 'root';
 const dbUserPass = 'passw';
 //const mongoDbUrl = `mongodb://${dbUserName}:${dbUserPass}@127.0.0.1:27017/${pokemonDbName}`;
-const mongoDbUrl = `mongodb://127.0.0.1:27017/${pokemonDbName}`;
 
-exports.connectDb = async function() {
+
+exports.connectDb = async function(mongoDbUrl) {    
   console.log('Opening connection to mongoDb on url:', mongoDbUrl);
+  
   await mongoose.connect(mongoDbUrl, {
     useNewUrlParser: true, 
+    serverSelectionTimeoutMS: 5000,
     useUnifiedTopology: true, 
     useFindAndModify: false, 
     useCreateIndex: true})
@@ -37,7 +38,7 @@ exports.closeDb = async function() {
   .then(() => console.log('DB Connection closed success'));
 };
 
-exports.loadPokemonTypeCollectionWithData = async function(PokemonTypeModel, pokemonFileData) {
+exports.loadPokemonTypeCollectionWithData = async function(PokemonTypeModel, pokemonDbName, pokemonFileData) {
   const idMap = {};
   
   for(let i = 0; i < pokemonFileData.length; i+= 1) {
@@ -80,7 +81,7 @@ exports.loadPokemonTypeCollectionWithData = async function(PokemonTypeModel, pok
   });
 };
 
-exports.loadPokemonCollectionWithData = async function(PokemonModel, pokemonFileData) {
+exports.loadPokemonCollectionWithData = async function(PokemonModel, pokemonDbName, pokemonFileData) {
   const refinedPokemonObjList = [];
   let pokeObj;
         
