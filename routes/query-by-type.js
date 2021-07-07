@@ -1,13 +1,14 @@
 const express = require('express');
+const PokemonModel = require('../models/Pokemon');
 const router = express.Router();
-const PokemonTypeModel = require('../models/PokemonType');
 
 router.get('/:type', async (req, res) => {
   try {
     console.log(`Getting Pokemons for the requested type: ${req.params.type}`);
-    const queryResp = await PokemonTypeModel.find({pokemontype: req.params.type })
-      .select('pokemonnames -_id');
-
+    
+    const queryResp = await PokemonModel.find({types: {$eq : req.params.type}}, {name: 1, _id: 0});
+    const finalOutArr = [];
+    
     if(!queryResp) {
       res.status(500);
       res.json({message: 'Finding pokemon by type failed'});
@@ -16,7 +17,13 @@ router.get('/:type', async (req, res) => {
         res.status(404);
         res.json({message: `Pokemon with requested type ${req.params.type} does not exist in DB`});
       } else {
-        res.json(queryResp);
+        for(let obj of queryResp) {
+          finalOutArr.push(obj.name);
+        }
+        res.json({
+          pokemons: finalOutArr,
+          totalNumber: finalOutArr.length
+        });
       }      
     }
 

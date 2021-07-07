@@ -4,10 +4,8 @@ const assert = require("chai").assert;
 const request = require("supertest");
 const DbManager = require('../../helpers/db-manager');
 const PokemonModel = require('../../models/Pokemon');
-const PokemonTypeModel = require('../../models/PokemonType');
 
 const server = require('../../server');
-
 
 describe('End to End Server Tests', () => {
   
@@ -19,7 +17,6 @@ describe('End to End Server Tests', () => {
 
   after(async () => {
     await PokemonModel.deleteMany({});
-    await PokemonTypeModel.deleteMany({});
     await DbManager.closeDb()
   });
   
@@ -27,7 +24,7 @@ describe('End to End Server Tests', () => {
     request(server).get('/')
     .then((resp) => {
       expect(resp.statusCode).to.equal(200);
-      expect(resp.body.message).to.include('This is Index page');
+      expect(resp.body.message.title).to.include('This is Index page');
       done();
     })
     .catch((err) => {done(err);});
@@ -55,9 +52,10 @@ describe('End to End Server Tests', () => {
     await request(server).get('/pokemon/type/Grass')
     .then((resp) => {
       expect(resp.statusCode).to.equal(200);        
-      assert.isArray(resp.body[0].pokemonnames);
-      assert.lengthOf(resp.body[0].pokemonnames, 14);
-      expect(resp.body[0].pokemonnames[0]).to.equal('Bulbasaur');    
+      assert.isArray(resp.body.pokemons);
+      assert.lengthOf(resp.body.pokemons, 14);
+      expect(resp.body.pokemons[0]).to.equal('Bulbasaur');
+      expect(resp.body.totalNumber).to.deep.equal(14);
     });
   });
 
@@ -65,9 +63,9 @@ describe('End to End Server Tests', () => {
     await request(server).get('/pokemon/types')
     .then((resp) => {
       expect(resp.statusCode).to.equal(200);
-      assert.isArray(resp.body);
-      assert.lengthOf(resp.body, 17);
-      expect(resp.body[0].pokemontype).to.equal('Grass');
+      assert.isArray(resp.body.pokemonTypes);
+      assert.lengthOf(resp.body.pokemonTypes, 17);
+      expect(resp.body.totalNumber).to.deep.equal(17);
     });
   });
 
@@ -117,12 +115,12 @@ describe('End to End Server Tests', () => {
     await request(server).get(`/pokemons`)
     .query({isfavorite: true})
     .query({name: 'Bulbasaur'})
-    //.query({type: 'Grass'})
     .then((resp) => {
       expect(resp.statusCode).to.equal(200);
       assert.equal(resp.body.data.length, 1);
       assert.equal(resp.body.totalPages, 1);
       assert.equal(resp.body.currentPage, 1);
+      assert.equal(resp.body.totalCount, 1);
     })
     .catch((err) => {console.log(err);});
   });
@@ -136,6 +134,7 @@ describe('End to End Server Tests', () => {
       assert.equal(resp.body.data.length, 20);
       assert.equal(resp.body.totalPages, 8);
       assert.equal(resp.body.currentPage, "2");
+      assert.equal(resp.body.totalCount, 151);
     })
     .catch((err) => {console.log(err);});
   });
@@ -146,6 +145,8 @@ describe('End to End Server Tests', () => {
     .then((resp) => {
       expect(resp.statusCode).to.equal(200);
       assert.equal(resp.body.data.length, 10);
+      assert.equal(resp.body.totalCount, 12);
+      assert.equal(resp.body.totalPages, 2);
     })
     .catch((err) => {console.log(err);});
   });
@@ -165,7 +166,7 @@ describe('End to End Server Tests', () => {
     // check what was marked unfavorite
     const unfavoritePokemon = await PokemonModel.find({id: favPokeid});
     const unfavPokeid = unfavoritePokemon[0].id;      
-    assert.equal(unfavPokeid, favPokeid)
+    assert.equal(unfavPokeid, favPokeid);
   })
 
 });

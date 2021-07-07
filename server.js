@@ -1,7 +1,6 @@
 const fs = require('fs');
 const DbManager = require('./helpers/db-manager');
 const PokemonModel = require('./models/Pokemon');
-const PokemonTypeModel = require('./models/PokemonType');
 const PokemonFilePath = `${__dirname}/pokemons.json`;
 const pokemonDbName = 'pokemon_db';
 const mongoDbUrl = `mongodb://127.0.0.1:27017/${pokemonDbName}`;
@@ -32,7 +31,6 @@ async function setUpDb() {
     const pokemonFileToLoad = fs.readFileSync(PokemonFilePath, 'utf8');
     const pokemonFileData = JSON.parse(pokemonFileToLoad);
     await DbManager.loadPokemonCollectionWithData(PokemonModel, pokemonDbName, pokemonFileData);
-    await DbManager.loadPokemonTypeCollectionWithData(PokemonTypeModel, pokemonDbName, pokemonFileData);
       
   } catch(err) {
     console.error(err);

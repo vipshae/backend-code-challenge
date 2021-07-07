@@ -1,21 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const PokemonTypeModel = require('../models/PokemonType');
+const PokemonModel = require('../models/Pokemon');
 
 router.get('/', async (req, res) => {
   try {
-    
-    console.log(`Listing all Pokemon Types existing in DB`);
-/*     
-      let typeList = [];
-      for await(const pokedoc of PokemonModel.find()) {
-      for(pokeType of pokedoc.types) {
-        if(typeList.indexOf(pokeType) === -1) {
-          typeList.push(pokeType);
-        }
-      }
-    } */
-    const queryResp = await PokemonTypeModel.find().select('pokemontype -_id');
+    let queryResp;
+
+    console.log(`Listing all Pokemon Types existing in DB`);    
+    await PokemonModel.distinct('types')
+    .then((resp) => {
+      queryResp = resp;      
+    })
+    .catch((err) => {
+      throw err;
+    });
     
     if(!queryResp) {
       res.status(500);
@@ -25,10 +23,12 @@ router.get('/', async (req, res) => {
         res.status(404);
         res.json({message: `Pokemon types do not exist in DB`});
       } else {
-        res.json(queryResp);
+        res.json({
+          pokemonTypes: queryResp,
+          totalNumber: queryResp.length
+        });
       }      
     }
-
   } catch(err) {
     res.json({message: err});
   }  

@@ -4,7 +4,6 @@ const expect = require("chai").expect;
 const assert = require("chai").assert;
 const DbManager = require('../../../helpers/db-manager');
 const PokemonModel = require('../../../models/Pokemon');
-const PokemonTypeModel = require('../../../models/PokemonType');
 const GoodpokemonTestFilePath = `${__dirname}/good-pokemon.json`;
 const BadpokemonTestFilePath = `${__dirname}/bad-pokemon.json`;
 
@@ -93,12 +92,10 @@ describe("Test load DB with data", () => {
 
   beforeEach(async () => {
     await PokemonModel.deleteMany({});
-    await PokemonTypeModel.deleteMany({});
   })
 
   after(async () => {
     await PokemonModel.deleteMany({});
-    await PokemonTypeModel.deleteMany({});
     if(mongoose.connection.readyState === 1) {
       await DbManager.closeDb();
     }
@@ -118,25 +115,6 @@ describe("Test load DB with data", () => {
 
   it('Test Load Bad pokemons Collection', async () => {
     await DbManager.loadPokemonCollectionWithData(PokemonModel, testDb, pokemonBadTestFileData)
-    .catch((err) => {
-      assert.instanceOf(err, Error);
-    });
-  });
-
-  it('Test Good Load to pokemontypes Collection', async () => {
-    await DbManager.loadPokemonTypeCollectionWithData(PokemonTypeModel, testDb, pokemonGoodTestFileData)
-    .then(async () => {
-      await PokemonTypeModel.find({})
-      .then((pokemonTypeData) => {
-        assert.equal(pokemonTypeData.length, 2);
-        assert.isArray(pokemonTypeData[0].pokemonnames);
-        assert.equal(pokemonTypeData[0].pokemonids[0], '001');
-      });
-    });
-  });
-
-  it('Test Bad Load to pokemontypes Collection', async () => {
-    await DbManager.loadPokemonTypeCollectionWithData(PokemonTypeModel, testDb, pokemonBadTestFileData)
     .catch((err) => {
       assert.instanceOf(err, Error);
     });

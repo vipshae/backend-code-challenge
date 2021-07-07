@@ -5,13 +5,13 @@ const assert = require("chai").assert;
 const request = require("supertest");
 const DbManager = require('../../../helpers/db-manager');
 const PokemonModel = require('../../../models/Pokemon');
-const PokemonTypeModel = require('../../../models/PokemonType');
 const PokemonTestFilePath = `${__dirname}/../../unit/helpers/good-pokemon.json`;
 
 const pokemonTestFileToLoad = fs.readFileSync(PokemonTestFilePath, 'utf8');
 const pokemonTestFileData = JSON.parse(pokemonTestFileToLoad);
 
 const app = require('../../../app');
+const exp = require('constants');
 
 const testDb = 'test';
 const testmongoDbUrl = `mongodb://127.0.0.1:27017/${testDb}`;
@@ -33,14 +33,11 @@ describe('Test app routes', () => {
   
   beforeEach(async () => {
     await PokemonModel.deleteMany({});
-    await PokemonTypeModel.deleteMany({});
     await DbManager.loadPokemonCollectionWithData(PokemonModel, testDb, pokemonTestFileData);
-    await DbManager.loadPokemonTypeCollectionWithData(PokemonTypeModel, testDb, pokemonTestFileData);
   });
 
   afterEach(async () => {
     await PokemonModel.deleteMany({});
-    await PokemonTypeModel.deleteMany({});
   });
 
   describe('GET: /', () => {
@@ -48,7 +45,7 @@ describe('Test app routes', () => {
       request(app).get('/')
       .then((resp) => {
         expect(resp.statusCode).to.equal(200);
-        expect(resp.body.message).to.include('This is Index page');
+        expect(resp.body.message.title).to.include('This is Index page');
         done();
       })
       .catch((err) => {done(err);});
@@ -106,23 +103,16 @@ describe('Test app routes', () => {
       request(app).get('/pokemon/types')
       .then((resp) => {
         expect(resp.statusCode).to.equal(200);
-        assert.isArray(resp.body);
-        assert.lengthOf(resp.body, 2);
-        expect(resp.body[0].pokemontype).to.equal('Grass');
-        expect(resp.body[1].pokemontype).to.equal('Poison');
+        assert.isArray(resp.body.pokemonTypes);
+        assert.lengthOf(resp.body.pokemonTypes, 2);
+        expect(resp.body.pokemonTypes[0]).to.equal('Grass');
+        expect(resp.body.pokemonTypes[1]).to.equal('Poison');
+        expect(resp.body.totalNumber).to.equal(2);
         done();
       })
       .catch((err) => {done(err);});
     });
   
-    it('Pokemon types not found response', async () => {
-      await PokemonTypeModel.deleteMany({});
-      request(app).get('/pokemon/types')
-      .then((resp) => {
-        expect(resp.statusCode).to.equal(404);
-        expect(resp.body.message).to.include('Pokemon types do not exist in DB');
-      })
-    });
   });
 
   describe('GET /pokemon/type', () => {    
@@ -130,9 +120,10 @@ describe('Test app routes', () => {
       request(app).get('/pokemon/type/Grass')
       .then((resp) => {
         expect(resp.statusCode).to.equal(200);        
-        assert.isArray(resp.body[0].pokemonnames);
-        assert.lengthOf(resp.body[0].pokemonnames, 1);
-        expect(resp.body[0].pokemonnames[0]).to.equal('Bulbasaur');        
+        assert.isArray(resp.body.pokemons);
+        assert.lengthOf(resp.body.pokemons, 1);
+        expect(resp.body.totalNumber).to.equal(1);
+        expect(resp.body.pokemons[0]).to.equal('Bulbasaur');      
         done();
       })
       .catch((err) => {done(err);});
@@ -254,10 +245,8 @@ describe('Test app routes', () => {
       await request(app).get(`/pokemons`)
       .query({name: 'Pulbasaur'})
       .then((resp) => {
-        expect(resp.statusCode).to.equal(200);
-        assert.equal(resp.body.data.length, 0);
-        assert.equal(resp.body.totalPages, 1);
-        assert.equal(resp.body.currentPage, '1');
+        expect(resp.statusCode).to.equal(404);
+        expect(resp.body.message).to.include('Pokemon with requested query parameters does not exist in DB');
       })
       .catch((err) => {console.log(err);});
     });
@@ -281,6 +270,8 @@ describe('Test app routes', () => {
       .then((resp) => {
         expect(resp.statusCode).to.equal(200);
         assert.equal(resp.body.data.length, 1);
+        assert.isArray(resp.body.data);
+        assert.equal(resp.body.data[0].name, 'Bulbasaur');
       })
       .catch((err) => {console.log(err);});
     });
