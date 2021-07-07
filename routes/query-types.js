@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const PokemonModel = require('../models/Pokemon');
 const PokemonTypeModel = require('../models/PokemonType');
 
 router.get('/', async (req, res) => {
@@ -17,11 +16,17 @@ router.get('/', async (req, res) => {
       }
     } */
     const queryResp = await PokemonTypeModel.find().select('pokemontype -_id');
+    
     if(!queryResp) {
-      res.status(404);
-      res.json({message: `Pokemon types do not exist in DB`});
+      res.status(500);
+      res.json({message: 'finding pokemon types failed'});
     } else {
-      res.json(queryResp);
+      if(queryResp.length === 0) {
+        res.status(404);
+        res.json({message: `Pokemon types do not exist in DB`});
+      } else {
+        res.json(queryResp);
+      }      
     }
 
   } catch(err) {

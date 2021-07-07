@@ -14,6 +14,7 @@ router.get('/:name', async (req, res) => {
     }
     
   } catch(err) {
+    res.status(500);
     res.json({message: err});
   }  
 });

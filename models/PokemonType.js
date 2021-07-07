@@ -5,6 +5,6 @@ const PokemonTypeSchema = Schema({
   pokemontype: {type: String, unique: true, required: true},
   pokemonids: [String],
   pokemonnames: [String]
-})
+}, {strictQuery: 'throw'});
 
 module.exports = mongoose.model('PokemonType', PokemonTypeSchema); // collection name is pokemontypes

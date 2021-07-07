@@ -2,14 +2,13 @@ const mongoose = require('mongoose');
 const fs = require('fs');
 const expect = require("chai").expect;
 const assert = require("chai").assert;
-const DbManager = require('../helpers/db-manager');
-const PokemonModel = require('../models/Pokemon');
-const PokemonTypeModel = require('../models/PokemonType');
+const DbManager = require('../../../helpers/db-manager');
+const PokemonModel = require('../../../models/Pokemon');
+const PokemonTypeModel = require('../../../models/PokemonType');
 const GoodpokemonTestFilePath = `${__dirname}/good-pokemon.json`;
 const BadpokemonTestFilePath = `${__dirname}/bad-pokemon.json`;
 
 const sinon = require('sinon');
-sinon.stub(console, "log");
 
 const testDb = 'test';
 const testmongoDbUrl = `mongodb://127.0.0.1:27017/${testDb}`;
@@ -17,6 +16,11 @@ const testmongoDbUrl = `mongodb://127.0.0.1:27017/${testDb}`;
 
 describe("Test Connection to DB", () => {
 
+  before((done) => {
+    sinon.stub(console, "log");
+    done();
+  });
+  
   afterEach(async () => {
     if(mongoose.connection.readyState === 1) {
       await DbManager.closeDb();
@@ -27,7 +31,6 @@ describe("Test Connection to DB", () => {
     const dbConnObj = await DbManager.connectDb(testmongoDbUrl)     
     dbConnObj.on('connected', () => {
       expect(mongoose.connection.readyState).to.equal(1);
-      //done();
     });
   });
 
@@ -51,6 +54,12 @@ describe("Test Disconnection from DB", () => {
       dbConnObj = await DbManager.connectDb(testmongoDbUrl);
     } 
   });
+
+  after(async () => {
+    if(mongoose.connection.readyState === 1) {
+      await DbManager.closeDb();
+    }    
+  });
   
   it('Good URL Disconnect from DB', async () => {
     await DbManager.closeDb();    
@@ -69,7 +78,6 @@ describe("Test Disconnection from DB", () => {
   });
 });
 
-
 describe("Test load DB with data", () => {
   const pokemonGoodTestFileToLoad = fs.readFileSync(GoodpokemonTestFilePath, 'utf8');
   const pokemonGoodTestFileData = JSON.parse(pokemonGoodTestFileToLoad);
@@ -78,7 +86,9 @@ describe("Test load DB with data", () => {
   const pokemonBadTestFileData = JSON.parse(pokemonBadTestFileToLoad);
   
   before(async () => {
-    await DbManager.connectDb(testmongoDbUrl);
+    if(mongoose.connection.readyState === 0) {
+      dbConnObj = await DbManager.connectDb(testmongoDbUrl);
+    } 
   })
 
   beforeEach(async () => {
@@ -87,7 +97,12 @@ describe("Test load DB with data", () => {
   })
 
   after(async () => {
-    await DbManager.closeDb();
+    await PokemonModel.deleteMany({});
+    await PokemonTypeModel.deleteMany({});
+    if(mongoose.connection.readyState === 1) {
+      await DbManager.closeDb();
+    }
+    console.log.restore();
   });
 
   it('Test Load Good pokemons Collection', async () => {

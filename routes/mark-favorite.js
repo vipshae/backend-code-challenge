@@ -5,7 +5,7 @@ const PokemonModel = require('../models/Pokemon');
 router.put('/:id', async (req, res) => {
   try {
     if(!req.query.isfavorite) {
-      res.status(503);
+      res.status(500);
       throw (`Option to mark unmark pokemon with requested id ${req.params.id} as favorite missing from request`);
     }
     

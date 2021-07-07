@@ -18,6 +18,6 @@ const PokemonSchema = Schema({
   maxHP: Number,
   attacks: {fast: [{name: String, type: {type: String}, damage: Number}], special: [{name: String, type: {type: String}, damage: Number}]},
   favorite: Boolean
-})
+});
 
 module.exports = mongoose.model('Pokemon', PokemonSchema); // collection name is pokemons

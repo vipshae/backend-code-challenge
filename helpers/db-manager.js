@@ -21,7 +21,6 @@ exports.connectDb = async function(mongoDbUrl) {
     console.log('Connected successfully to DB');
   })    
   .catch((err) => {
-    console.error(`MongoDb Connection error: ${err}`);
     throw err;
   });   
   
